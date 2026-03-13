@@ -5,17 +5,21 @@ on:
     branches:
       - dev
 
+permissions:
+  contents: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - name: Add CNAME
-        run: echo "dev.demo.h2houseofhealth.com" > CNAME
+      - name: Create CNAME
+        run: echo "dev.demo.h2houseofhealth.com" > ./CNAME
 
-      - name: Deploy
+      - name: Deploy to gh-pages-dev
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
