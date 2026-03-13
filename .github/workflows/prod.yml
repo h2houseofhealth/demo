@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   deploy:
@@ -20,12 +20,19 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Validate deploy config
+        run: |
+          test -n "${{ vars.PAGES_MAIN_REPO }}" || (echo "Missing repo variable PAGES_MAIN_REPO (format: owner/repo)" && exit 1)
+          test -n "${{ secrets.GH_PAGES_PAT }}" || (echo "Missing secret GH_PAGES_PAT" && exit 1)
+
       - name: Create CNAME
         run: echo "demo.h2houseofhealth.com" > ./CNAME
 
-      - name: Deploy to gh-pages-main
+      - name: Deploy to MAIN Pages repo
         uses: peaceiris/actions-gh-pages@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages-main
+          personal_token: ${{ secrets.GH_PAGES_PAT }}
+          external_repository: ${{ vars.PAGES_MAIN_REPO }}
+          publish_branch: gh-pages
           publish_dir: .
+          force_orphan: true
