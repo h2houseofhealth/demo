@@ -1,23 +1,38 @@
-name: Deploy PROD
+name: Deploy MAIN
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   deploy:
+    concurrency:
+      group: deploy-main
+      cancel-in-progress: true
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - name: Add CNAME
-        run: echo "demo.h2houseofhealth.com" > CNAME
+      - name: Validate deploy config
+        run: |
+          test -n "${{ vars.PAGES_MAIN_REPO }}" || (echo "Missing repo variable PAGES_MAIN_REPO (format: owner/repo)" && exit 1)
+          test -n "${{ secrets.GH_PAGES_PAT }}" || (echo "Missing secret GH_PAGES_PAT" && exit 1)
 
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Create CNAME
+        run: echo "demo.h2houseofhealth.com" > ./CNAME
+
+      - name: Deploy to MAIN Pages repo
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages-prod
+          personal_token: ${{ secrets.GH_PAGES_PAT }}
+          external_repository: ${{ vars.PAGES_MAIN_REPO }}
+          publish_branch: gh-pages
           publish_dir: .
+          force_orphan: true
