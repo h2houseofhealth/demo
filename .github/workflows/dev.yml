@@ -130,7 +130,9 @@ jobs:
           git clone "${REMOTE_URL}" "$WORK_DIR"
           cd "$WORK_DIR"
 
-          if git show-ref --verify --quiet refs/remotes/origin/gh-pages; then
+          if git show-ref --verify --quiet refs/heads/gh-pages; then
+            git switch gh-pages
+          elif git show-ref --verify --quiet refs/remotes/origin/gh-pages; then
             git switch -c gh-pages --track origin/gh-pages
           else
             git switch --orphan gh-pages
