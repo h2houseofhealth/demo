@@ -25,8 +25,26 @@ jobs:
           test -n "${{ vars.PAGES_DEV_REPO }}" || (echo "Missing repo variable PAGES_DEV_REPO (format: owner/repo)" && exit 1)
           test -n "${{ secrets.GH_PAGES_PAT }}" || (echo "Missing secret GH_PAGES_PAT" && exit 1)
 
-      - name: Create CNAME
-        run: echo "dev.demo.h2houseofhealth.com" > ./CNAME
+      - name: Build DEV static page
+        run: |
+          mkdir -p ./dist
+          cat > ./dist/index.html <<'EOF'
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width,initial-scale=1" />
+            <title>DEV</title>
+          </head>
+          <body>
+            <h1>This is from DEV</h1>
+          </body>
+          </html>
+          EOF
+
+      - name: Create CNAME (optional)
+        if: ${{ vars.PAGES_DEV_DOMAIN != '' }}
+        run: echo "${{ vars.PAGES_DEV_DOMAIN }}" > ./dist/CNAME
 
       - name: Deploy to DEV Pages repo
         uses: peaceiris/actions-gh-pages@v4
@@ -34,5 +52,5 @@ jobs:
           personal_token: ${{ secrets.GH_PAGES_PAT }}
           external_repository: ${{ vars.PAGES_DEV_REPO }}
           publish_branch: gh-pages
-          publish_dir: .
+          publish_dir: ./dist
           force_orphan: true
