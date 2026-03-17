@@ -79,7 +79,11 @@ jobs:
           </html>
           EOF
 
-      - name: Create CNAME (optional)
+      - name: Copy CNAME from repo root (optional)
+        if: ${{ hashFiles('CNAME') != '' }}
+        run: cp ./CNAME ./dist/CNAME
+
+      - name: Create CNAME from variable (optional override)
         if: ${{ vars.PAGES_DEV_DOMAIN != '' }}
         run: echo "${{ vars.PAGES_DEV_DOMAIN }}" > ./dist/CNAME
 
