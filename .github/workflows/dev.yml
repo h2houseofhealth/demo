@@ -62,22 +62,10 @@ jobs:
           fi
           echo "repo=$CLEAN" >> "$GITHUB_OUTPUT"
 
-      - name: Build DEV static page
+      - name: Build deploy artifact from repo files
         run: |
           mkdir -p ./dist
-          cat > ./dist/index.html <<'EOF'
-          <!doctype html>
-          <html lang="en">
-          <head>
-            <meta charset="UTF-8" />
-            <meta name="viewport" content="width=device-width,initial-scale=1" />
-            <title>DEV</title>
-          </head>
-          <body>
-            <h1>This is from DEV</h1>
-          </body>
-          </html>
-          EOF
+          cp ./index.html ./dist/index.html
 
       - name: Copy CNAME from repo root (optional)
         if: ${{ hashFiles('CNAME') != '' }}
