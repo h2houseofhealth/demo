@@ -6,6 +6,9 @@ on:
       - dev
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 permissions:
   contents: read
 
@@ -18,12 +21,19 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Validate deploy config
         run: |
-          test -n "${{ vars.PAGES_DEV_REPO }}" || (echo "Missing repo variable PAGES_DEV_REPO (format: owner/repo)" && exit 1)
-          test -n "${{ secrets.GH_PAGES_PAT }}" || (echo "Missing secret GH_PAGES_PAT" && exit 1)
+          if [ -z "${{ vars.PAGES_DEV_REPO }}" ]; then
+            echo "Missing repo variable: PAGES_DEV_REPO (expected format: owner/demo-dev)"
+            exit 1
+          fi
+          if [ -z "${{ secrets.GH_PAGES_PAT }}" ]; then
+            echo "Missing secret: GH_PAGES_PAT"
+            exit 1
+          fi
+          echo "PAGES_DEV_REPO is set to: ${{ vars.PAGES_DEV_REPO }}"
 
       - name: Build DEV static page
         run: |
