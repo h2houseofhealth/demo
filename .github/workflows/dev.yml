@@ -40,6 +40,11 @@ jobs:
           set -euo pipefail
           RAW='${{ vars.PAGES_DEV_REPO }}'
           CLEAN="$(echo "$RAW" | tr -d '[:space:]')"
+          CLEAN="${CLEAN#https://github.com/}"
+          CLEAN="${CLEAN#http://github.com/}"
+          CLEAN="${CLEAN#github.com/}"
+          CLEAN="${CLEAN%.git}"
+          CLEAN="${CLEAN#/}"
           echo "PAGES_DEV_REPO(raw)   = '$RAW'"
           echo "PAGES_DEV_REPO(clean) = '$CLEAN'"
           case "$CLEAN" in
@@ -78,14 +83,35 @@ jobs:
           GH_PAGES_PAT: ${{ secrets.GH_PAGES_PAT }}
         run: |
           set -euo pipefail
-          git ls-remote "https://x-access-token:${GH_PAGES_PAT}@github.com/${{ vars.PAGES_DEV_REPO }}.git" HEAD >/dev/null
+          TARGET_REPO='${{ vars.PAGES_DEV_REPO }}'
+          TARGET_REPO="$(echo "$TARGET_REPO" | tr -d '[:space:]')"
+          TARGET_REPO="${TARGET_REPO#https://github.com/}"
+          TARGET_REPO="${TARGET_REPO#http://github.com/}"
+          TARGET_REPO="${TARGET_REPO#github.com/}"
+          TARGET_REPO="${TARGET_REPO%.git}"
+          TARGET_REPO="${TARGET_REPO#/}"
+          if [[ ! "$TARGET_REPO" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
+            echo "Invalid target repo after normalization: '$TARGET_REPO'"
+            exit 1
+          fi
+          git ls-remote "https://x-access-token:${GH_PAGES_PAT}@github.com/${TARGET_REPO}.git" HEAD >/dev/null
 
       - name: Push dist to target gh-pages
         env:
           GH_PAGES_PAT: ${{ secrets.GH_PAGES_PAT }}
         run: |
           set -euo pipefail
-          TARGET_REPO="${{ vars.PAGES_DEV_REPO }}"
+          TARGET_REPO='${{ vars.PAGES_DEV_REPO }}'
+          TARGET_REPO="$(echo "$TARGET_REPO" | tr -d '[:space:]')"
+          TARGET_REPO="${TARGET_REPO#https://github.com/}"
+          TARGET_REPO="${TARGET_REPO#http://github.com/}"
+          TARGET_REPO="${TARGET_REPO#github.com/}"
+          TARGET_REPO="${TARGET_REPO%.git}"
+          TARGET_REPO="${TARGET_REPO#/}"
+          if [[ ! "$TARGET_REPO" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
+            echo "Invalid target repo after normalization: '$TARGET_REPO'"
+            exit 1
+          fi
           WORK_DIR="$(mktemp -d)"
 
           git clone "https://x-access-token:${GH_PAGES_PAT}@github.com/${TARGET_REPO}.git" "$WORK_DIR"
