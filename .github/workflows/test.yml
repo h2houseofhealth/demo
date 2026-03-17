@@ -3,7 +3,7 @@ name: Deploy TEST
 on:
   push:
     branches:
-      - TEST
+      - test
   workflow_dispatch:
 
 env:
@@ -15,7 +15,7 @@ permissions:
 jobs:
   deploy:
     concurrency:
-      group: deploy-TEST
+      group: deploy-test
       cancel-in-progress: true
     runs-on: ubuntu-latest
 
@@ -26,7 +26,7 @@ jobs:
       - name: Validate deploy config
         run: |
           if [ -z "${{ vars.PAGES_TEST_REPO }}" ]; then
-            echo "Missing repo variable: PAGES_TEST_REPO (expected format: owner/demo-TEST)"
+            echo "Missing repo variable: PAGES_TEST_REPO (expected format: owner/demo-test)"
             exit 1
           fi
           if [ -z "${{ secrets.GH_PAGES_PAT }}" ]; then
@@ -95,7 +95,7 @@ jobs:
           export GIT_ASKPASS="$ASKPASS_SCRIPT"
           export GIT_TERMINAL_PROMPT=0
           echo "Checking access to: ${REMOTE_URL}"
-          git ls-remote "${REMOTE_URL}" HEAD >/TEST/null
+          git ls-remote "${REMOTE_URL}" HEAD >/dev/null
 
       - name: Push dist to target gh-pages
         env:
