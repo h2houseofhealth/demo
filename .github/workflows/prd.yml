@@ -1,9 +1,9 @@
-name: Deploy DEV
+name: Deploy PRD
 
 on:
   push:
     branches:
-      - dev
+      - prd
   workflow_dispatch:
 
 env:
@@ -15,7 +15,7 @@ permissions:
 jobs:
   deploy:
     concurrency:
-      group: deploy-dev
+      group: deploy-prd
       cancel-in-progress: true
     runs-on: ubuntu-latest
 
@@ -25,21 +25,21 @@ jobs:
 
       - name: Validate deploy config
         run: |
-          if [ -z "${{ vars.PAGES_DEV_REPO }}" ]; then
-            echo "Missing repo variable: PAGES_DEV_REPO (expected format: owner/demo-dev)"
+          if [ -z "${{ vars.PAGES_PRD_REPO }}" ]; then
+            echo "Missing repo variable: PAGES_PRD_REPO (expected format: owner/demo-prd)"
             exit 1
           fi
           if [ -z "${{ secrets.GH_PAGES_PAT }}" ]; then
             echo "Missing secret: GH_PAGES_PAT"
             exit 1
           fi
-          echo "Deploy target repo: ${{ vars.PAGES_DEV_REPO }}"
+          echo "Deploy target repo: ${{ vars.PAGES_PRD_REPO }}"
 
       - name: Normalize target repo value
         id: normalize_repo
         run: |
           set -euo pipefail
-          RAW='${{ vars.PAGES_DEV_REPO }}'
+          RAW='${{ vars.PAGES_PRD_REPO }}'
           CLEAN="$(printf '%s' "$RAW" | tr -d '[:space:]')"
           CLEAN="${CLEAN#git@github.com:}"
           CLEAN="${CLEAN#ssh://git@github.com/}"
@@ -54,10 +54,10 @@ jobs:
             CLEAN="${CLEAN#/}"
             CLEAN="${CLEAN#:}"
           done
-          echo "PAGES_DEV_REPO(raw)   = '$RAW'"
-          echo "PAGES_DEV_REPO(clean) = '$CLEAN'"
+          echo "PAGES_PRD_REPO(raw)   = '$RAW'"
+          echo "PAGES_PRD_REPO(clean) = '$CLEAN'"
           if [[ ! "$CLEAN" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
-            echo "PAGES_DEV_REPO format is invalid. Expected owner/repo"
+            echo "PAGES_PRD_REPO format is invalid. Expected owner/repo"
             exit 1
           fi
           echo "repo=$CLEAN" >> "$GITHUB_OUTPUT"
@@ -72,8 +72,8 @@ jobs:
         run: cp ./CNAME ./dist/CNAME
 
       - name: Create CNAME from variable (optional override)
-        if: ${{ vars.PAGES_DEV_DOMAIN != '' }}
-        run: echo "${{ vars.PAGES_DEV_DOMAIN }}" > ./dist/CNAME
+        if: ${{ vars.PAGES_PRD_DOMAIN != '' }}
+        run: echo "${{ vars.PAGES_PRD_DOMAIN }}" > ./dist/CNAME
 
       - name: Verify target repo access
         env:
@@ -142,5 +142,5 @@ jobs:
             exit 0
           fi
 
-          git commit -m "Deploy DEV from ${GITHUB_REPOSITORY}@${GITHUB_SHA}"
+          git commit -m "Deploy PRD from ${GITHUB_REPOSITORY}@${GITHUB_SHA}"
           git push origin gh-pages --force
