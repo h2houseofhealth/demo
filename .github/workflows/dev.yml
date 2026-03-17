@@ -35,6 +35,23 @@ jobs:
           fi
           echo "Deploy target repo: ${{ vars.PAGES_DEV_REPO }}"
 
+      - name: Debug target repo value
+        run: |
+          set -euo pipefail
+          RAW='${{ vars.PAGES_DEV_REPO }}'
+          CLEAN="$(echo "$RAW" | tr -d '[:space:]')"
+          echo "PAGES_DEV_REPO(raw)   = '$RAW'"
+          echo "PAGES_DEV_REPO(clean) = '$CLEAN'"
+          case "$CLEAN" in
+            */*)
+              echo "PAGES_DEV_REPO format looks valid (owner/repo)."
+              ;;
+            *)
+              echo "PAGES_DEV_REPO format is invalid. Expected owner/repo"
+              exit 1
+              ;;
+          esac
+
       - name: Build DEV static page
         run: |
           mkdir -p ./dist
